@@ -181,7 +181,7 @@ button{font:inherit;cursor:pointer}
         <div class="field"><label for="num">Número</label><input type="text" id="num" name="num" inputmode="numeric" placeholder="ex.: 125 ou s/n"></div>
         <div class="field"><label for="comp">Compl. <span class="opt">opcional</span></label><input type="text" id="comp" name="comp" placeholder="Apto, fundos"></div>
       </div>
-      <div class="field"><label for="bairro">Bairro</label><input type="text" id="bairro" name="bairro" list="bairros" autocomplete="off"><datalist id="bairros"></datalist></div>
+      <div class="field"><label for="bairro">Bairro</label><select id="bairro" name="bairro"><option value="">Selecione o bairro</option></select></div>
     </div>
     <div id="rur" class="field" hidden><label for="local">Localidade / povoado e como chegar</label><textarea id="local" name="local" placeholder="ex.: Povoado de Ceraíma, 2ª casa depois da escola"></textarea></div>
     <div class="field"><label for="ref">Ponto de referência</label><input type="text" id="ref" name="ref" placeholder="ex.: ao lado do mercadinho, rua atrás da escola"></div>
@@ -310,8 +310,8 @@ const STREETS=D.s.map((s,i)=>{const pts=s.p.map(p=>[p[0]/10,p[1]/10]);const tk=n
   return {i,n:s.n,h:s.h,th,pts,e:s.e,lb:(s.lb||[]).map(l=>({x:l[0]/10,y:l[1]/10,a:l[2]})),tk,tn:norm(s.n).split(' ').filter(t=>t&&!DROP.has(t))}});
 STREETS.forEach(s=>s.lb.forEach(l=>putPt(gS,l.x,l.y,{x:l.x,y:l.y,a:l.a,s})));
 /* bairros */
-const extraB=['Centro','Novo Horizonte','São Sebastião','São Francisco','Morada Nova','Brasília','Alvorada','José Humberto Nunes','Monte Azul','Ipanema','Beija Flor II','Belo Horizonte','Boa Vista','Brindes','Liberdade','Renascer','Santa Rita','Sol Nascente','Alto Caiçara','Caiçara','Maraba','Sandoval Moraes','Parque da Cidade','Sossego','Tabuinha','Vasconcelos','Floresta','Candeal','Manoel Cotrim','Joaquim Fernandes','Leolina de Sá','Alazão','Deus Dará','Maria Bastos'];
-const dl=document.getElementById('bairros');[...new Set(extraB)].sort((a,b)=>a.localeCompare(b,'pt')).forEach(b=>{const o=document.createElement('option');o.value=b;dl.appendChild(o)});
+const extraB=['Centro','Novo Horizonte','São Sebastião','São Francisco','Morada Nova','Brasília','Alvorada','José Humberto Nunes','Monte Azul','Ipanema','Beija Flor II','Belo Horizonte','Boa Vista','Brindes','Liberdade','Renascer','Santa Rita','Sol Nascente','Alto Caiçara','Caiçara','Maraba','Sandoval Moraes','Parque da Cidade','Sossego','Tabuinha','Vasconcelos','Floresta','Candeal','Manoel Cotrim','Joaquim Fernandes','Leolina de Sá','Alazão','Deus Dará','Maria Bastos','Vomitamel'];
+const bairroEl=document.getElementById('bairro');[...new Set(extraB)].sort((a,b)=>a.localeCompare(b,'pt')).forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;bairroEl.appendChild(o)});
 
 /* ---------- map view ---------- */
 const cv=document.getElementById('map'),ctx=cv.getContext('2d'),box=document.getElementById('mapbox');
@@ -446,7 +446,7 @@ function choose(s){selStreet=s;rua.value=s.n;closeSug();
   const xs=s.pts.map(p=>p[0]),ys=s.pts.map(p=>p[1]);
   if(!geocode(true)){fitBox(Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys),260);
     if(!pin||pinMode!=='manual')setState('rua','Rua localizada (em destaque no mapa). Digite o número ou toque sobre a sua casa.')}
-  const b=document.getElementById('bairro');const m=s.n.match(/(?:Bairro|Lot\.|Cond\.)\s+([^-]+)/);if(m&&!b.value)b.value=m[1].trim();
+  const b=document.getElementById('bairro');const m=s.n.match(/(?:Bairro|Lot\.|Cond\.)\s+([^-]+)/);if(m&&!b.value){const alvo=norm(m[1]);const op=[...b.options].find(o=>norm(o.value)===alvo);if(op)b.value=op.value}
   num.focus({preventScroll:true})}
 function segDist(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy;let t=L?((px-ax)*dx+(py-ay)*dy)/L:0;t=Math.max(0,Math.min(1,t));return Math.hypot(px-ax-t*dx,py-ay-t*dy)}
 function distStreet(s,x,y){let d=Infinity;for(const p of s.pts)d=Math.min(d,Math.hypot(p[0]-x,p[1]-y));for(const [a,b] of s.e){const A=s.pts[a],B=s.pts[b];d=Math.min(d,segDist(x,y,A[0],A[1],B[0],B[1]))}return d}
