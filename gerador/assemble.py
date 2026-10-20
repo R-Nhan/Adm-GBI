@@ -1,6 +1,6 @@
 import sys,os
 # uso: python3 assemble.py ../site "URL_DO_APPS_SCRIPT" 44.2 43.7
-# gera Forms/index.html e Mapa/mapa.html dentro da pasta informada.
+# gera Forms/index.html e Mapa/index.html dentro da pasta informada.
 # Por compatibilidade, também aceita um arquivo HTML como primeiro argumento e
 # grava os dois arquivos na pasta desse arquivo.
 # O mapa lê as casas de oração de casas.json (lista de {"comum","nome","lat","lon"}); se o arquivo não existir, não desenha casas.
@@ -18,7 +18,7 @@ if os.path.splitext(destino)[1].lower() in ('.html','.htm'):
     mapa=os.path.join(os.path.dirname(destino) or '.','mapa.html')
 else:
     formulario=os.path.join(destino,'Forms','index.html')
-    mapa=os.path.join(destino,'Mapa','mapa.html')
+    mapa=os.path.join(destino,'Mapa','index.html')
     os.makedirs(os.path.dirname(formulario),exist_ok=True)
     os.makedirs(os.path.dirname(mapa),exist_ok=True)
 montar('template.html',formulario)
