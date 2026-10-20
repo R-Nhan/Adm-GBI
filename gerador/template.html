@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Cadastro da Irmandade Guanambi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: formulário em coluna à esquerda, planta cadastral fixa à direita (no celular, o mapa entra logo depois do endereço) */
+:root{
+  --paper:#ffffff; --card:#ffffff; --ink:#212529; --muted:#5a6470; --line:#cfd8e0;
+  --accent:#033d60; --accent-2:#0c1e3f; --accent-soft:#eaf1f6; --pin:#d32f2f; --ok:#2e7d4f; --warn:#9a6a10; --err:#c62828;
+  --map-bg:#fbfcfd; --map-lot:#a3afba; --map-block:#4f6273; --map-num:#33424f; --map-street:#033d60; --map-mark:#7b5a2e;
+  --f-display:Verdana,Geneva,"DejaVu Sans",sans-serif;
+  --f-body:Verdana,Geneva,"DejaVu Sans",sans-serif;
+  --f-mono:Verdana,Geneva,"DejaVu Sans",sans-serif;
+  --r:5px;
+}
+:root{color-scheme:light}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.brand{margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px))) calc(-1 * max(16px,env(safe-area-inset-right,0px)));margin-bottom:20px;border-bottom:1px solid var(--line)}
+.brand-top{display:grid;justify-items:center;padding-block:18px 14px;text-align:center}
+.brand-name{display:inline-block;color:var(--accent);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;line-height:1.3;padding:8px 18px;border-top:2px solid var(--accent);border-bottom:2px solid var(--accent)}
+.brand-bar{border-top:1px solid var(--line);display:flex;justify-content:center;flex-wrap:wrap;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+.brand-bar span{color:var(--accent);font-weight:700;font-size:12px;padding:10px 12px}
+.brand-bar span+span{border-left:2px solid var(--accent);margin-block:8px;padding-block:2px}
+.page{max-width:1240px;margin:0 auto;display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:960px){
+  .page{grid-template-columns:minmax(0,440px) minmax(0,1fr);column-gap:24px;align-items:start}
+  .page>*{grid-column:1}
+}
+header.top{display:grid;gap:6px;padding-block:4px 6px}
+.eyebrow{font-size:12px;color:var(--pin);font-weight:700;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--pin)}
+h1{font-family:var(--f-display);font-weight:700;color:var(--accent);font-size:clamp(20px,3vw,24px);line-height:1.25;margin:0;text-wrap:balance}
+.lede{color:var(--muted);margin:0;max-width:60ch}
+.lede strong{color:var(--ink)}
+section.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:14px}
+section.card h2{font-family:var(--f-display);font-weight:700;font-size:17px;color:var(--accent);margin:0;display:flex;gap:10px;align-items:center}
+section.card h2::after{content:"";flex:1;height:1px;background:var(--line);margin-left:6px}
+section.card h2 .n{font-size:11px;color:var(--card);background:var(--accent);font-weight:700;border-radius:3px;padding:2px 6px}
+.field{display:grid;gap:6px;min-width:0}
+.row{display:grid;gap:12px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.row.r31{grid-template-columns:minmax(0,2.2fr) minmax(0,1fr)}
+@media (max-width:420px){.row,.row.r31{grid-template-columns:minmax(0,1fr)}}
+label,.lbl{font-weight:600;font-size:14px}
+.opt{font-weight:400;color:var(--muted);font-size:13px}
+.help{font-size:13px;color:var(--muted);margin:0}
+input[type=text],input[type=tel],input[type=number],select,textarea{
+  width:100%;font:inherit;color:var(--ink);background:var(--paper);border:1px solid #adb9c4;border-radius:var(--r);padding:10px 12px;min-height:44px}
+textarea{min-height:64px;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,.choice input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.invalid{border-color:var(--err)!important}
+.errmsg{color:var(--err);font-size:13px;margin:0}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choice{position:relative}
+.choice input{position:absolute;opacity:0;inset:0;margin:0}
+.choice span{display:inline-flex;align-items:center;min-height:40px;padding:8px 16px;border:1px solid var(--accent);color:var(--accent);font-weight:700;border-radius:var(--r);background:var(--paper);cursor:pointer;font-size:14px}
+.choice input:checked+span{background:var(--accent);border-color:var(--accent);color:var(--card);font-weight:600}
+.consent{font-size:14px;color:var(--muted);margin:0}
+.check{display:flex;gap:10px;align-items:flex-start;font-weight:600}
+.check input{width:20px;height:20px;margin-top:2px;accent-color:var(--accent);flex:none}
+.combo{position:relative}
+.suggest{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:0 10px 24px rgba(0,0,0,.12);max-height:340px;overflow:auto;margin:0;padding:4px;list-style:none}
+.suggest li{padding:9px 10px;border-radius:6px;cursor:pointer;display:grid;gap:1px}
+.suggest li small{color:var(--muted);font-size:12px}
+.suggest li[aria-selected="true"],.suggest li:hover{background:var(--accent-soft)}
+.suggest .none{color:var(--muted);cursor:default}
+.locstate{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:var(--r);background:var(--accent-soft);font-size:14px}
+.locstate .dot{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none;background:var(--muted)}
+.locstate[data-k="exato"] .dot{background:var(--ok)}
+.locstate[data-k="aprox"] .dot,.locstate[data-k="rua"] .dot{background:var(--warn)}
+.locstate[data-k="manual"] .dot,.locstate[data-k="gps"] .dot{background:var(--ok)}
+.locstate[data-k="erro"] .dot{background:var(--err)}
+.coords{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+button{font:inherit;cursor:pointer}
+.btn{min-height:44px;border-radius:var(--r);border:1px solid var(--accent);background:var(--card);color:var(--accent);padding:10px 14px;font-weight:700;font-family:inherit}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--card);font-size:16px;padding:14px 18px;width:100%}
+.btn.ghost{background:transparent}
+.gpsbox{display:grid;gap:6px;padding:12px;border-radius:var(--r);background:var(--accent-soft)}
+.btn.gpsbtn{background:var(--accent);border-color:var(--accent);color:var(--card);width:100%}
+.ou{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}
+.ou::before,.ou::after{content:"";flex:1;height:1px;background:var(--line)}
+.mapbox{background:var(--map-bg);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;position:relative;height:62vh;min-height:360px;max-height:640px}
+@media (min-width:960px){.mapbox{grid-column:2;grid-row:1 / span 12;position:sticky;top:16px;height:calc(100vh - 32px);min-height:520px;max-height:none}}
+#map{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab;display:block}
+#map.drag{cursor:grabbing}
+.mapctl{position:absolute;right:10px;top:10px;display:grid;gap:6px;z-index:5}
+.mapctl button{width:40px;height:40px;border-radius:var(--r);border:1px solid var(--accent);background:var(--card);color:var(--accent);font-size:20px;line-height:1;font-weight:600;display:grid;place-items:center}
+.mapctl button.wide{font-size:12px;width:auto;padding:0 10px}
+.maphint{position:absolute;left:10px;right:60px;top:10px;z-index:4;font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;color:var(--muted);max-width:420px}
+.maphint b{color:var(--ink)}
+.scale{position:absolute;left:10px;bottom:10px;z-index:4;font-family:var(--f-mono);font-size:11px;color:var(--muted);display:grid;gap:2px}
+.scale i{display:block;height:4px;border:1px solid var(--muted);border-top:0}
+.src{position:absolute;right:10px;bottom:8px;font-size:11px;color:var(--muted);z-index:4;background:var(--card);padding:2px 6px;border-radius:4px}
+.ages{display:grid;gap:8px;grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:560px){.ages{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.age{display:grid;gap:2px;font-weight:600;font-size:13px;min-width:0}
+.age small{font-weight:400;color:var(--muted);font-size:12px}
+.age select{margin-top:4px;font-family:var(--f-mono)}
+.total{margin:0;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.total b{color:var(--ink)}
+.satnote{position:absolute;left:10px;bottom:34px;right:10px;max-width:360px;z-index:4;font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 8px;color:var(--muted)}
+.calib{position:absolute;left:50%;transform:translateX(-50%);bottom:34px;z-index:6;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:8px;display:grid;gap:6px;justify-items:center;font-size:12px}
+.calib div{display:flex;gap:4px;align-items:center}.calib span{width:34px;text-align:right;color:var(--muted)}
+.calib button{width:34px;height:34px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink)}
+.calib code{font-family:var(--f-mono)}
+.mapctl button[aria-pressed="true"]{background:var(--accent);color:var(--card);border-color:var(--accent)}
+.done{display:grid;gap:12px}
+.done h2{font-family:var(--f-display)}
+.recap{width:100%;border-collapse:collapse;font-size:13px}
+.recap td{border-top:1px solid var(--line);padding:6px 4px;vertical-align:top}
+.recap td:first-child{color:var(--muted);width:42%}
+.demo{font-size:13px;padding:10px 12px;border-radius:var(--r);border:1px dashed var(--warn);color:var(--warn)}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+@media (max-width:600px){
+  input[type=text],input[type=tel],input[type=number],select,textarea{font-size:16px}
+  section.card{padding:14px}
+  .mapbox{height:70vh;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px))) calc(-1 * max(16px,env(safe-area-inset-right,0px)));border-radius:0;border-left:0;border-right:0}
+  .maphint{font-size:12px;padding:6px 8px}
+  .src{font-size:10px;max-width:70%;text-align:right}
+  h1{font-size:21px}
+  .brand-bar{flex-wrap:nowrap}
+  .brand-bar span{font-size:11px;padding:9px 8px;white-space:nowrap}
+  .brand-top{padding-block:14px 10px}
+}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+</style>
+</head>
+<body>
+
+<div class="brand">
+  <div class="brand-top"><span class="brand-name">Congregação Cristã<br>no Brasil</span></div>
+  <div class="brand-bar"><span>ADM Guanambi</span><span>Cadastro da Irmandade</span></div>
+</div>
+<form class="page" id="f" novalidate>
+  <header class="top">
+    <span class="eyebrow">Levantamento das casas de oração · Guanambi/BA</span>
+    <h1>Cadastro de localização da irmandade</h1>
+    <p class="lede">A paz de Deus! Este levantamento mostra em quais regiões da cidade moram os irmãos de cada comum congregação, para planejar as próximas casas de oração. <strong>Apenas um cadastro por casa</strong>, feito pelo responsável. Leva cerca de 2 minutos.</p>
+  </header>
+
+  <section class="card" aria-labelledby="h-cons">
+    <h2 id="h-cons"><span class="n">1/5</span>Consentimento</h2>
+    <p class="consent">As informações serão usadas exclusivamente pelo ministério da Congregação Cristã no Brasil em Guanambi para mapear onde moram os irmãos e planejar novas casas de oração. O acesso é restrito aos irmãos responsáveis pelo levantamento. Nada será divulgado individualmente: os resultados aparecem apenas como concentração por região. Os dados ficam guardados até o fim do estudo. Para corrigir ou excluir seu cadastro, fale com a secretaria da ADM Guanambi.</p>
+    <label class="check"><input type="checkbox" id="consent" name="consent" required> <span>Li e concordo com o uso das informações para esta finalidade.</span></label>
+    <p class="errmsg" id="e-consent" hidden>Marque esta caixa para continuar.</p>
+  </section>
+
+  <section class="card" aria-labelledby="h-resp">
+    <h2 id="h-resp"><span class="n">2/5</span>Responsável pela casa</h2>
+    <div class="field"><label for="nome">Nome do responsável</label><input type="text" id="nome" name="nome" autocomplete="name" required><p class="errmsg" id="e-nome" hidden>Informe o nome.</p></div>
+    <div class="field"><label for="tel">Telefone / WhatsApp</label><input type="tel" id="tel" name="tel" inputmode="tel" autocomplete="tel" placeholder="(77) 9 0000-0000" required><p class="errmsg" id="e-tel" hidden>Informe um telefone com DDD (10 ou 11 dígitos).</p></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-end" id="sec-end">
+    <h2 id="h-end"><span class="n">3/5</span>Endereço da casa</h2>
+    <div class="gpsbox">
+      <button type="button" class="btn gpsbtn" id="gps">Usar minha localização</button>
+      <p class="help">Só use se estiver <b>dentro de casa agora</b>. Se estiver na igreja ou em outro lugar, preencha o endereço abaixo.</p>
+    </div>
+    <div class="ou" aria-hidden="true"><span>ou preencha o endereço</span></div>
+    <div class="field"><span class="lbl" id="l-zona">A casa fica em</span>
+      <div class="choices" role="radiogroup" aria-labelledby="l-zona">
+        <label class="choice"><input type="radio" name="zona" value="urbana" checked><span>Cidade</span></label>
+        <label class="choice"><input type="radio" name="zona" value="rural"><span>Zona rural / povoado</span></label>
+      </div>
+    </div>
+    <div id="urb" class="field" style="gap:14px">
+      <div class="field combo"><label for="rua">Rua / Avenida</label>
+        <input type="text" id="rua" name="rua" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sug" aria-autocomplete="list" placeholder="Comece a digitar, ex.: Rio de Janeiro">
+        <ul class="suggest" id="sug" role="listbox" hidden></ul>
+        <p class="help">Escolha a rua na lista: o mapa vai até ela.</p>
+      </div>
+      <div class="row r31">
+        <div class="field"><label for="num">Número</label><input type="text" id="num" name="num" inputmode="numeric" placeholder="ex.: 125 ou s/n"></div>
+        <div class="field"><label for="comp">Compl. <span class="opt">opcional</span></label><input type="text" id="comp" name="comp" placeholder="Apto, fundos"></div>
+      </div>
+      <div class="field"><label for="bairro">Bairro</label><input type="text" id="bairro" name="bairro" list="bairros" autocomplete="off"><datalist id="bairros"></datalist></div>
+    </div>
+    <div id="rur" class="field" hidden><label for="local">Localidade / povoado e como chegar</label><textarea id="local" name="local" placeholder="ex.: Povoado de Ceraíma, 2ª casa depois da escola"></textarea></div>
+    <div class="field"><label for="ref">Ponto de referência</label><input type="text" id="ref" name="ref" placeholder="ex.: ao lado do mercadinho, rua atrás da escola"></div>
+    <div class="locstate" id="locstate" data-k="none" aria-live="polite"><span class="dot"></span><div><div id="loctext">Ainda sem posição no mapa. Digite a rua e o número, ou toque no mapa sobre a sua casa.</div><div class="coords" id="loccoords"></div></div></div>
+    <p class="errmsg" id="e-pin" hidden>Marque a posição da casa no mapa antes de enviar.</p>
+  </section>
+
+  <div class="mapbox" id="mapbox" aria-label="Planta da cidade de Guanambi. Toque para marcar a casa.">
+    <canvas id="map"></canvas>
+    <div class="maphint" id="maphint"><b>Toque sobre a sua casa</b> para marcar ou ajustar. Arraste para mover, use dois dedos ou os botões para aproximar.</div>
+    <div class="mapctl">
+      <button type="button" id="zin" aria-label="Aproximar">+</button>
+      <button type="button" id="zout" aria-label="Afastar">−</button>
+      <button type="button" id="zall" class="wide" aria-label="Ver a cidade inteira">Cidade</button>
+      <button type="button" id="sat" class="wide" aria-pressed="true">Satélite</button>
+    </div>
+    <div class="scale" aria-hidden="true"><span id="scalet">100 m</span><i id="scalebar" style="width:60px"></i></div>
+    <div class="src" id="src">Planta cadastral de Guanambi</div>
+    <div class="satnote" id="satnote" hidden>A imagem de satélite não carregou aqui. Ela aparece na versão publicada no site, com internet.</div>
+    <div class="calib" id="calib" hidden><b>Alinhar satélite com a planta</b><div><span>1 m</span><button type="button" data-d="-1,0" aria-label="Oeste 1 m">←</button><button type="button" data-d="0,1" aria-label="Norte 1 m">↑</button><button type="button" data-d="0,-1" aria-label="Sul 1 m">↓</button><button type="button" data-d="1,0" aria-label="Leste 1 m">→</button></div><div><span>10 m</span><button type="button" data-d="-10,0" aria-label="Oeste 10 m">←</button><button type="button" data-d="0,10" aria-label="Norte 10 m">↑</button><button type="button" data-d="0,-10" aria-label="Sul 10 m">↓</button><button type="button" data-d="10,0" aria-label="Leste 10 m">→</button></div><div><button type="button" data-p="0,0" style="width:auto;padding:0 8px">Zerar</button><button type="button" data-p="44,44" style="width:auto;padding:0 8px">Testar SAD69</button></div><code id="calibv">SAT_OFF = [0, 0]</code></div>
+  </div>
+
+  <section class="card" aria-labelledby="h-mor">
+    <h2 id="h-mor"><span class="n">4/5</span>Quem frequenta, nesta casa</h2>
+    <div class="field"><span class="lbl" id="l-idade">Quantos moradores frequentam os cultos, em cada faixa de idade?</span>
+      <p class="help">Conte só quem frequenta a Congregação, tomando ou não santa ceia.</p>
+      <div class="ages" role="group" aria-labelledby="l-idade">
+        <label class="age"><span>0 a 11 anos</span><small>crianças</small><select id="i0"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></label>
+        <label class="age"><span>12 a 17</span><small>adolescentes</small><select id="i1"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></label>
+        <label class="age"><span>18 a 29</span><small>jovens</small><select id="i2"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></label>
+        <label class="age"><span>30 a 59</span><small>adultos</small><select id="i3"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></label>
+        <label class="age"><span>60 ou mais</span><small>idosos</small><select id="i4"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></label>
+      </div>
+      <p class="total" id="tot">Total: <b>0</b> frequentam</p>
+      <p class="errmsg" id="e-idade" hidden>Informe quantos frequentam em pelo menos uma faixa de idade.</p>
+    </div>
+    <div class="field"><label for="qsc">Desses, quantos tomam santa ceia?</label>
+      <select id="qsc" name="qsc" required><option value="">Selecione</option><option value="0">0</option></select>
+      <p class="help" id="semsc">Os demais contam como frequentam sem tomar santa ceia (crianças, não batizados).</p>
+      <p class="errmsg" id="e-qsc" hidden>Escolha quantos tomam santa ceia.</p></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-cong">
+    <h2 id="h-cong"><span class="n">5/5</span>Congregação</h2>
+    <div class="field"><label for="comum">Em qual comum congregação a família congrega?</label>
+      <select id="comum" name="comum" required>
+        <option value="">Selecione</option>
+        <option>Nova Central – Novo Horizonte</option>
+        <option>Central Antiga – Rua Rio de Janeiro</option>
+        <option>São Sebastião</option>
+        <option>São Francisco</option>
+        <option>Morada Nova</option>
+        <option>Brasília</option>
+        <option>Alvorada</option>
+        <option>José Humberto Nunes</option>
+        <option>Outra (zona rural ou outra cidade)</option>
+      </select><p class="errmsg" id="e-comum" hidden>Escolha a comum congregação.</p></div>
+    <div class="field"><span class="lbl" id="l-outra">Algum desses moradores congrega em outra comum?</span>
+      <div class="choices" role="radiogroup" aria-labelledby="l-outra">
+        <label class="choice"><input type="radio" name="temoutra" value="nao" checked><span>Não</span></label>
+        <label class="choice"><input type="radio" name="temoutra" value="sim"><span>Sim</span></label>
+      </div>
+    </div>
+    <div class="row" id="outrabox" hidden>
+      <div class="field"><label for="outra">Qual comum?</label><select id="outra"></select><p class="errmsg" id="e-outra" hidden>Escolha a comum.</p></div>
+      <div class="field"><label for="outraq">Quantos?</label><select id="outraq"></select></div>
+    </div>
+  </section>
+
+  <div class="field" id="sendwrap">
+    <button type="submit" class="btn primary" id="send">Enviar cadastro</button>
+    <p class="errmsg" id="e-send" hidden></p>
+  </div>
+
+  <section class="card done" id="done" hidden aria-live="polite">
+    <h2>Cadastro recebido. Deus abençoe!</h2>
+    <p class="help">Lembre-se: apenas um cadastro por casa.</p>
+    <p class="demo" id="demonote" hidden>Modo de demonstração: nenhum dado foi enviado. Abaixo está o registro que seria gravado na planilha.</p>
+    <table class="recap" id="recap"></table>
+    <button type="button" class="btn" id="again">Fazer outro cadastro</button>
+  </section>
+</form>
+
+<script id="mapdata" type="application/json">__DATA__</script>
+<script>
+/* ===== Configuração: cole aqui a URL do Apps Script (Implantar > App da Web). Vazio = modo de demonstração. ===== */
+const ENDPOINT = '__ENDPOINT__';
+
+__UTM__
+
+(function(){
+const D=JSON.parse(document.getElementById('mapdata').textContent);
+const OX=D.o[0],OY=D.o[1];
+/* ---------- decode geometry (metros relativos à origem) ---------- */
+const polys=[];let total=0;
+for(const cls of ['l','q'])for(const fl of D[cls])total+=fl.length;
+const P=new Float32Array(total);let w=0;
+function addPolys(arr,cls){for(const fl of arr){let x=fl[0],y=fl[1];const st=w;let mnx=x,mxx=x,mny=y,mxy=y;P[w++]=x/10;P[w++]=y/10;
+  for(let i=2;i<fl.length;i+=2){x+=fl[i];y+=fl[i+1];P[w++]=x/10;P[w++]=y/10;if(x<mnx)mnx=x;if(x>mxx)mxx=x;if(y<mny)mny=y;if(y>mxy)mxy=y}
+  polys.push({s:st,e:w,c:cls,b:[mnx/10,mny/10,mxx/10,mxy/10],z:Math.max(mxx-mnx,mxy-mny)/10})}}
+addPolys(D.l,'l');addPolys(D.q,'q');
+const CELL=250,GX=Math.ceil(30000/CELL);
+function grid(){return new Map()}
+function key(i,j){return i*GX+j}
+const gL=grid(),gN=grid(),gM=grid(),gS=grid();
+polys.forEach((p,id)=>{for(let i=Math.floor(p.b[0]/CELL);i<=Math.floor(p.b[2]/CELL);i++)for(let j=Math.floor(p.b[1]/CELL);j<=Math.floor(p.b[3]/CELL);j++){const k=key(i,j);(gL.get(k)||gL.set(k,[]).get(k)).push(id)}});
+function putPt(g,x,y,v){const k=key(Math.floor(x/CELL),Math.floor(y/CELL));(g.get(k)||g.set(k,[]).get(k)).push(v)}
+const NUMS=D.nm.map(a=>({x:a[0]/10,y:a[1]/10,t:a[2]}));NUMS.forEach(n=>putPt(gN,n.x,n.y,n));
+const MARKS=D.mk.map(a=>({x:a[0]/10,y:a[1]/10,t:a[2]}));MARKS.forEach(n=>putPt(gM,n.x,n.y,n));
+const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+const DROP=new Set(['rua','r','av','avenida','travessa','tv','praca','pc','estrada','bairro','ba','lot','loteamento','cond','de','da','do','dos','das','e']);
+const STREETS=D.s.map((s,i)=>{const pts=s.p.map(p=>[p[0]/10,p[1]/10]);const tk=norm(s.n).split(' ').filter(t=>t&&!DROP.has(t)),th=norm((s.h||'').replace(/^perto de /,'')).split(' ').filter(t=>t&&!DROP.has(t));
+  return {i,n:s.n,h:s.h,th,pts,e:s.e,lb:(s.lb||[]).map(l=>({x:l[0]/10,y:l[1]/10,a:l[2]})),tk,tn:norm(s.n).split(' ').filter(t=>t&&!DROP.has(t))}});
+STREETS.forEach(s=>s.lb.forEach(l=>putPt(gS,l.x,l.y,{x:l.x,y:l.y,a:l.a,s})));
+/* bairros */
+const extraB=['Centro','Novo Horizonte','São Sebastião','São Francisco','Morada Nova','Brasília','Alvorada','José Humberto Nunes','Monte Azul','Ipanema','Beija Flor II','Belo Horizonte','Boa Vista','Brindes','Liberdade','Renascer','Santa Rita','Sol Nascente','Alto Caiçara','Caiçara','Maraba','Sandoval Moraes','Parque da Cidade','Sossego','Tabuinha','Vasconcelos','Floresta','Candeal','Manoel Cotrim','Joaquim Fernandes','Leolina de Sá','Alazão','Deus Dará','Maria Bastos'];
+const dl=document.getElementById('bairros');[...new Set(extraB)].sort((a,b)=>a.localeCompare(b,'pt')).forEach(b=>{const o=document.createElement('option');o.value=b;dl.appendChild(o)});
+
+/* ---------- map view ---------- */
+const cv=document.getElementById('map'),ctx=cv.getContext('2d'),box=document.getElementById('mapbox');
+let W=0,H=0,DPR=1;
+const V={cx:16700,cy:8300,s:0.12};
+const SMIN=0.02,SMAX=6;
+let col={};
+function readColors(){const cs=getComputedStyle(document.documentElement);for(const k of ['map-bg','map-lot','map-block','map-num','map-street','map-mark','pin','accent','card','ink'])col[k]=cs.getPropertyValue('--'+k).trim();}
+readColors();
+
+new MutationObserver(()=>{readColors();req()}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+function resize(){const r=cv.getBoundingClientRect();DPR=Math.min(window.devicePixelRatio||1,2.5);W=r.width;H=r.height;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);req()}
+new ResizeObserver(resize).observe(box);
+const sx=x=>(x-V.cx)*V.s+W/2, sy=y=>H/2-(y-V.cy)*V.s;
+const wx=X=>(X-W/2)/V.s+V.cx, wy=Y=>V.cy-(Y-H/2)/V.s;
+let raf=0,LODS=0.3,LODZ=140;function req(){if(!raf)raf=requestAnimationFrame(draw)}
+let selStreet=null,pin=null,stamp=0;const seen=new Uint32Array(polys.length);
+function cellsVisible(pad){const x0=wx(-pad),x1=wx(W+pad),y0=wy(H+pad),y1=wy(-pad);const out=[];
+  for(let i=Math.floor(x0/CELL);i<=Math.floor(x1/CELL);i++)for(let j=Math.floor(y0/CELL);j<=Math.floor(y1/CELL);j++)out.push(key(i,j));return out}
+/* ---------- satélite (Esri World Imagery, Web Mercator reprojetado para a planta UTM) ---------- */
+const SAT_URL='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+const SAT_OFF=[__SATDX__,__SATDY__]; /* a planta da prefeitura está em SAD69: deslocamento medido contra a imagem (leste, norte), em metros; #ajuste abre o painel */
+let satOn=true,satFail=0,satOk=0;const tiles=new Map();
+function tile(z,x,y){const k=z+'/'+x+'/'+y;let t=tiles.get(k);if(t){tiles.delete(k);tiles.set(k,t);return t}
+  const img=new Image();t={img,ok:false,bad:false};img.onload=()=>{t.ok=true;satOk++;req()};img.onerror=()=>{t.bad=true;satFail++;req()};
+  img.src=SAT_URL.replace('{z}',z).replace('{y}',y).replace('{x}',x);tiles.set(k,t);
+  if(tiles.size>700){for(const [kk,tt] of tiles){if(tt.ok||tt.bad){tiles.delete(kk);break}}}return t}
+const peek=(z,x,y)=>tiles.get(z+'/'+x+'/'+y);
+const lon2t=(lon,z)=>(lon+180)/360*2**z,lat2t=(lat,z)=>{const r=lat*Math.PI/180;return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*2**z};
+const t2lon=(x,z)=>x/2**z*360-180,t2lat=(y,z)=>180/Math.PI*Math.atan(Math.sinh(Math.PI-2*Math.PI*y/2**z));
+function t2scr(tx,ty,z){const e=UTM.fwd(t2lat(ty,z),t2lon(tx,z));return [sx(e[0]-OX+SAT_OFF[0]),sy(e[1]-OY+SAT_OFF[1])]}
+function drawSat(){let z=Math.round(Math.log2(151800*V.s*Math.min(DPR,2)*0.8));z=Math.max(13,Math.min(18,z));
+  const cs=[[0,0],[W,0],[0,H],[W,H]].map(([X,Y])=>UTM.inv(wx(X)+OX-SAT_OFF[0],wy(Y)+OY-SAT_OFF[1]));
+  const la=cs.map(c=>c[0]),lo=cs.map(c=>c[1]);
+  const x0=Math.floor(lon2t(Math.min(...lo),z)),x1=Math.floor(lon2t(Math.max(...lo),z)),y0=Math.floor(lat2t(Math.max(...la),z)),y1=Math.floor(lat2t(Math.min(...la),z));
+  if((x1-x0+1)*(y1-y0+1)>90)return false;let any=false;
+  for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const t=tile(z,x,y);let img=null,sub=null;
+    if(t.ok){img=t.img;sub=[0,0,256]}else{for(let d=1;d<=5;d++){const a=peek(z-d,x>>d,y>>d);if(a&&a.ok){const sz=256>>d;img=a.img;sub=[(x-((x>>d)<<d))*sz,(y-((y>>d)<<d))*sz,sz];break}}
+      if(!img&&t.bad&&z>13)tile(z-1,x>>1,y>>1);}
+    if(!img)continue;any=true;const A=t2scr(x,y,z),B=t2scr(x+1,y,z),C=t2scr(x,y+1,z);
+    ctx.setTransform(DPR*(B[0]-A[0])/256,DPR*(B[1]-A[1])/256,DPR*(C[0]-A[0])/256,DPR*(C[1]-A[1])/256,DPR*A[0],DPR*A[1]);
+    ctx.drawImage(img,sub[0],sub[1],sub[2],sub[2],-0.3,-0.3,256.6,256.6)}
+  ctx.setTransform(DPR,0,0,DPR,0,0);return any}
+const SATCOL={'map-lot':'rgba(255,255,255,.5)','map-block':'rgba(255,255,255,.85)','map-num':'#ffffff','map-street':'#ffffff','map-mark':'#ffe2b0','halo':'rgba(0,0,0,.65)'};
+function draw(){raf=0;if(!W)return;ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle=col['map-bg'];ctx.fillRect(0,0,W,H);
+  const satShown=satOn&&V.s>=0.22&&drawSat();const C=satShown?SATCOL:col;
+  document.getElementById('src').textContent=satShown?'Planta cadastral de Guanambi · Imagem: Esri, Maxar, Earthstar Geographics':'Planta cadastral de Guanambi';
+  document.getElementById('satnote').hidden=!(satOn&&V.s>=0.22&&satFail>3&&satOk===0);
+  const cells=cellsVisible(20);stamp++;const minz=V.s<0.15?15:V.s<0.4?5:0;
+  const pl=new Path2D(),pq=new Path2D();
+  for(const k of cells){const ids=gL.get(k);if(!ids)continue;for(const id of ids){if(seen[id]===stamp)continue;seen[id]=stamp;const p=polys[id];
+    if(p.c==='l'&&p.z<minz)continue;const path=p.c==='q'?pq:pl;path.moveTo(sx(P[p.s]),sy(P[p.s+1]));for(let i=p.s+2;i<p.e;i+=2)path.lineTo(sx(P[i]),sy(P[i+1]))}}
+  ctx.lineJoin='round';ctx.lineWidth=V.s>2?1:0.8;ctx.strokeStyle=C['map-lot'];ctx.stroke(pl);
+  ctx.lineWidth=V.s>1?1.4:1;ctx.strokeStyle=C['map-block'];ctx.stroke(pq);
+  if(selStreet){ctx.save();ctx.strokeStyle=col['accent'];ctx.globalAlpha=.35;ctx.lineCap='round';ctx.lineWidth=Math.max(8,14*V.s);
+    const pa=new Path2D();for(const [a,b] of selStreet.e){const A=selStreet.pts[a],B=selStreet.pts[b];pa.moveTo(sx(A[0]),sy(A[1]));pa.lineTo(sx(B[0]),sy(B[1]))}ctx.stroke(pa);
+    ctx.globalAlpha=.9;ctx.fillStyle=col['accent'];for(const p of selStreet.pts){ctx.beginPath();ctx.arc(sx(p[0]),sy(p[1]),4,0,7);ctx.fill()}ctx.restore()}
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  const halo=(t,X,Y)=>{if(satShown){ctx.strokeText(t,X,Y)}ctx.fillText(t,X,Y)};ctx.lineJoin='round';
+  if(satShown){ctx.strokeStyle=SATCOL.halo;ctx.lineWidth=3}
+  if(V.s>=0.9){ctx.font='500 '+(V.s>2.5?11:10)+'px Verdana,sans-serif';ctx.fillStyle=C['map-num'];
+    for(const k of cells){const a=gN.get(k);if(a)for(const n of a)halo(n.t,sx(n.x),sy(n.y))}}
+  if(V.s>=0.7){ctx.font='italic 10px Verdana,sans-serif';ctx.fillStyle=C['map-mark'];
+    for(const k of cells){const a=gM.get(k);if(a)for(const n of a)halo(n.t,sx(n.x),sy(n.y))}}
+  if(V.s>=0.28){ctx.font='600 '+(V.s>1.2?12:11)+'px Verdana,sans-serif';ctx.lineWidth=3.5;ctx.strokeStyle=satShown?SATCOL.halo:col['map-bg'];ctx.fillStyle=C['map-street'];
+    const used=[];for(const k of cells){const a=gS.get(k);if(!a)continue;for(const n of a){const X=sx(n.x),Y=sy(n.y);if(X<-150||X>W+150||Y<-40||Y>H+40)continue;if(used.some(u=>Math.hypot(u[0]-X,u[1]-Y)<70))continue;used.push([X,Y]);
+      const t=n.s.n.length>34?n.s.n.slice(0,33)+'…':n.s.n;ctx.save();ctx.translate(X,Y);ctx.rotate(-n.a);ctx.strokeText(t,0,0);ctx.fillText(t,0,0);ctx.restore()}}}
+  if(pin){const X=sx(pin.x),Y=sy(pin.y);ctx.save();ctx.fillStyle=col['pin'];ctx.strokeStyle=col['card'];ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(X,Y);ctx.bezierCurveTo(X-14,Y-18,X-12,Y-34,X,Y-34);ctx.bezierCurveTo(X+12,Y-34,X+14,Y-18,X,Y);ctx.fill();ctx.stroke();
+    ctx.fillStyle=col['card'];ctx.beginPath();ctx.arc(X,Y-23,4.5,0,7);ctx.fill();
+    ctx.globalAlpha=.25;ctx.fillStyle=col['pin'];ctx.beginPath();ctx.ellipse(X,Y,9,3.5,0,0,7);ctx.fill();ctx.restore()}
+  // escala
+  const target=80/V.s;const pw=Math.pow(10,Math.floor(Math.log10(target)));const nice=[1,2,5,10].map(m=>m*pw).filter(v=>v<=target).pop()||pw;
+  document.getElementById('scalebar').style.width=(nice*V.s)+'px';document.getElementById('scalet').textContent=nice>=1000?(nice/1000)+' km':nice+' m';
+}
+/* zoom & animação */
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let anim=0;
+function flyTo(cx,cy,s,ms=450){cancelAnimationFrame(anim);s=Math.min(SMAX,Math.max(SMIN,s));if(reduce||!W){V.cx=cx;V.cy=cy;V.s=s;req();return}
+  const a={...V},t0=performance.now();const step=t=>{let k=Math.min(1,(t-t0)/ms);k=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    V.cx=a.cx+(cx-a.cx)*k;V.cy=a.cy+(cy-a.cy)*k;V.s=Math.exp(Math.log(a.s)+(Math.log(s)-Math.log(a.s))*k);draw();if(k<1)anim=requestAnimationFrame(step)};anim=requestAnimationFrame(step)}
+function zoomAt(f,X,Y){const x=wx(X),y=wy(Y);V.s=Math.min(SMAX,Math.max(SMIN,V.s*f));V.cx=x-(X-W/2)/V.s;V.cy=y+(Y-H/2)/V.s;req()}
+function fitBox(x0,y0,x1,y1,minSpan=220){const cx=(x0+x1)/2,cy=(y0+y1)/2;const sw=Math.max(x1-x0,minSpan),sh=Math.max(y1-y0,minSpan);flyTo(cx,cy,Math.min((W-60)/sw,(H-80)/sh))}
+const CITY=[14000,5200,20500,12000];
+document.getElementById('zin').onclick=()=>{cancelAnimationFrame(anim);zoomAt(1.6,W/2,H/2)};
+document.getElementById('zout').onclick=()=>{cancelAnimationFrame(anim);zoomAt(1/1.6,W/2,H/2)};
+document.getElementById('zall').onclick=()=>fitBox(...CITY);
+const satBtn=document.getElementById('sat');satBtn.onclick=()=>{satOn=!satOn;satBtn.setAttribute('aria-pressed',satOn);req()};
+if(location.hash==='#ajuste'){const cb=document.getElementById('calib');cb.hidden=false;cb.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.p){const [a,c]=b.dataset.p.split(',').map(Number);SAT_OFF[0]=a;SAT_OFF[1]=c}else{const [a,c]=b.dataset.d.split(',').map(Number);SAT_OFF[0]+=a;SAT_OFF[1]+=c}
+  document.getElementById('calibv').textContent='SAT_OFF = ['+SAT_OFF[0]+', '+SAT_OFF[1]+']';req()});document.getElementById('calibv').textContent='SAT_OFF = ['+SAT_OFF[0]+', '+SAT_OFF[1]+']'}
+cv.addEventListener('wheel',e=>{e.preventDefault();cancelAnimationFrame(anim);const r=cv.getBoundingClientRect();zoomAt(Math.exp(-e.deltaY*0.0018),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+const ptr=new Map();let gest=null;
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);cancelAnimationFrame(anim);const r=cv.getBoundingClientRect();ptr.set(e.pointerId,{x:e.clientX-r.left,y:e.clientY-r.top});
+  if(ptr.size===1){const p=[...ptr.values()][0];gest={t:'pan',x0:p.x,y0:p.y,lx:p.x,ly:p.y,t0:performance.now(),moved:false}}
+  else if(ptr.size===2){const [a,b]=[...ptr.values()];gest={t:'pinch',d:Math.hypot(a.x-b.x,a.y-b.y),mx:(a.x+b.x)/2,my:(a.y+b.y)/2,moved:true}}});
+cv.addEventListener('pointermove',e=>{if(!ptr.has(e.pointerId)||!gest)return;const r=cv.getBoundingClientRect();ptr.set(e.pointerId,{x:e.clientX-r.left,y:e.clientY-r.top});
+  if(gest.t==='pan'&&ptr.size===1){const p=[...ptr.values()][0];if(Math.hypot(p.x-gest.x0,p.y-gest.y0)>6){gest.moved=true;cv.classList.add('drag')}
+    if(gest.moved){V.cx-=(p.x-gest.lx)/V.s;V.cy+=(p.y-gest.ly)/V.s;req()}gest.lx=p.x;gest.ly=p.y}
+  else if(gest.t==='pinch'&&ptr.size===2){const [a,b]=[...ptr.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+    V.cx-=(mx-gest.mx)/V.s;V.cy+=(my-gest.my)/V.s;zoomAt(d/gest.d,mx,my);gest.d=d;gest.mx=mx;gest.my=my}});
+function up(e){if(!ptr.has(e.pointerId))return;const p=ptr.get(e.pointerId);ptr.delete(e.pointerId);cv.classList.remove('drag');
+  if(gest&&gest.t==='pan'&&!gest.moved&&ptr.size===0&&performance.now()-gest.t0<700){setPin(wx(p.x),wy(p.y),'manual');}
+  if(ptr.size===1){const q=[...ptr.values()][0];gest={t:'pan',x0:q.x,y0:q.y,lx:q.x,ly:q.y,t0:0,moved:true}}else if(ptr.size===0)gest=null}
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+let lastTap=0;cv.addEventListener('dblclick',e=>{e.preventDefault();const r=cv.getBoundingClientRect();zoomAt(2,e.clientX-r.left,e.clientY-r.top)});
+
+/* ---------- posição ---------- */
+const ls=document.getElementById('locstate'),lt=document.getElementById('loctext'),lc=document.getElementById('loccoords');
+let pinMode=null;
+function setState(k,msg){ls.dataset.k=k;lt.textContent=msg}
+function setPin(x,y,mode,msg){pin={x,y};pinMode=mode;const [lat,lon]=UTM.inv(x+OX-SAT_OFF[0],y+OY-SAT_OFF[1]);pin.lat=lat;pin.lon=lon;
+  document.getElementById('maphint').hidden=true;lc.textContent=lat.toFixed(6)+', '+lon.toFixed(6);document.getElementById('e-pin').hidden=true;
+  if(mode==='manual')setState('manual','Posição marcada por você no mapa. Se precisar, toque de novo para ajustar.');else if(msg)setState(mode,msg);req()}
+/* ---------- busca de rua ---------- */
+const rua=document.getElementById('rua'),sug=document.getElementById('sug'),num=document.getElementById('num');
+let opts=[],act=-1;
+function search(q){const qt=norm(q).split(' ').filter(t=>t&&!DROP.has(t));if(!qt.length)return[];const res=[];
+  for(const s of STREETS){let sc=0,ok=true;for(const t of qt){let hit=0;for(const k of s.tk){if(k===t){hit=3;break}if(k.startsWith(t))hit=Math.max(hit,2)}if(!hit)for(const k of s.th){if(k.startsWith(t)){hit=0.5;break}}if(!hit){ok=false;break}sc+=hit}
+    if(!ok)continue;if(s.tn[0]&&s.tn[0].startsWith(qt[0]))sc+=2;if(s.tn[0]===qt[0])sc+=2;sc+=Math.min(s.pts.length,8)*0.15-s.tn.length*0.05;res.push([sc,s])}
+  res.sort((a,b)=>b[0]-a[0]||a[1].n.localeCompare(b[1].n,'pt'));const seenN=new Set(),out=[];for(const [,s] of res){const k=s.n+'|'+s.h;if(seenN.has(k))continue;seenN.add(k);out.push(s);if(out.length>=40)break}return out}
+function render(){sug.innerHTML='';if(!opts.length){const li=document.createElement('li');li.className='none';li.textContent='Nenhuma rua encontrada. Tente outra parte do nome, ou marque direto no mapa.';sug.appendChild(li)}
+  opts.forEach((s,i)=>{const li=document.createElement('li');li.role='option';li.id='o'+i;li.setAttribute('aria-selected',i===act);
+    li.innerHTML='<span></span>'+(s.h?'<small></small>':'');li.firstChild.textContent=s.n;if(s.h)li.lastChild.textContent=s.h;
+    li.addEventListener('pointerdown',e=>{e.preventDefault();choose(s)});sug.appendChild(li)});
+  sug.hidden=false;rua.setAttribute('aria-expanded','true');if(act>=0)rua.setAttribute('aria-activedescendant','o'+act)}
+function closeSug(){sug.hidden=true;rua.setAttribute('aria-expanded','false');rua.removeAttribute('aria-activedescendant')}
+rua.addEventListener('input',()=>{selStreet=null;req();const q=rua.value;if(norm(q).length<2){closeSug();return}opts=search(q);act=opts.length?0:-1;render()});
+rua.addEventListener('keydown',e=>{if(sug.hidden)return;if(e.key==='ArrowDown'){act=Math.min(opts.length-1,act+1);render();e.preventDefault()}
+  else if(e.key==='ArrowUp'){act=Math.max(0,act-1);render();e.preventDefault()}else if(e.key==='Enter'){if(act>=0){choose(opts[act]);e.preventDefault()}}else if(e.key==='Escape')closeSug()});
+rua.addEventListener('blur',()=>setTimeout(closeSug,120));
+function choose(s){selStreet=s;rua.value=s.n;closeSug();
+  const xs=s.pts.map(p=>p[0]),ys=s.pts.map(p=>p[1]);
+  if(!geocode(true)){fitBox(Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys),260);
+    if(!pin||pinMode!=='manual')setState('rua','Rua localizada (em destaque no mapa). Digite o número ou toque sobre a sua casa.')}
+  const b=document.getElementById('bairro');const m=s.n.match(/(?:Bairro|Lot\.|Cond\.)\s+([^-]+)/);if(m&&!b.value)b.value=m[1].trim();
+  num.focus({preventScroll:true})}
+function segDist(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy;let t=L?((px-ax)*dx+(py-ay)*dy)/L:0;t=Math.max(0,Math.min(1,t));return Math.hypot(px-ax-t*dx,py-ay-t*dy)}
+function distStreet(s,x,y){let d=Infinity;for(const p of s.pts)d=Math.min(d,Math.hypot(p[0]-x,p[1]-y));for(const [a,b] of s.e){const A=s.pts[a],B=s.pts[b];d=Math.min(d,segDist(x,y,A[0],A[1],B[0],B[1]))}return d}
+function nearNums(s,R){const xs=s.pts.map(p=>p[0]),ys=s.pts.map(p=>p[1]);const x0=Math.min(...xs)-R-200,x1=Math.max(...xs)+R+200,y0=Math.min(...ys)-R-200,y1=Math.max(...ys)+R+200;const out=[];
+  for(let i=Math.floor(x0/CELL);i<=Math.floor(x1/CELL);i++)for(let j=Math.floor(y0/CELL);j<=Math.floor(y1/CELL);j++){const a=gN.get(key(i,j));if(!a)continue;for(const n of a){if(n.x<x0||n.x>x1||n.y<y0||n.y>y1)continue;const d=distStreet(s,n.x,n.y);if(d<R)out.push({n,d})}}return out}
+const parseN=t=>{const m=String(t).toUpperCase().replace(/\s/g,'').match(/^0*(\d+)-?([A-Z]?)$/);return m?{v:+m[1],suf:m[2]}:null};
+function geocode(fromChoose){const s=selStreet;if(!s)return false;const q=parseN(num.value);if(!q)return false;
+  const cand=nearNums(s,45);let best=null;
+  for(const c of cand){const p=parseN(c.n.t);if(!p||p.v!==q.v)continue;const sc=c.d+(p.suf===q.suf?0:8);if(!best||sc<best.sc)best={sc,c}}
+  if(best&&best.c.d<30){const n=best.c.n;setPin(n.x,n.y,'exato','Número '+num.value.trim()+' encontrado na planta. Confira se o alfinete está sobre a sua casa; se não, toque no lugar certo.');flyTo(n.x,n.y,2.6);return true}
+  let lo=null,hi=null;for(const c of cand){if(c.d>28)continue;const p=parseN(c.n.t);if(!p)continue;if(p.v<q.v&&(!lo||p.v>lo.v||(p.v===lo.v&&c.d<lo.d)))lo={v:p.v,n:c.n,d:c.d};if(p.v>q.v&&(!hi||p.v<hi.v||(p.v===hi.v&&c.d<hi.d)))hi={v:p.v,n:c.n,d:c.d}}
+  let x,y,msg;
+  if(lo&&hi&&Math.hypot(lo.n.x-hi.n.x,lo.n.y-hi.n.y)<250&&(hi.v-lo.v)<=120){const k=(q.v-lo.v)/(hi.v-lo.v);x=lo.n.x+(hi.n.x-lo.n.x)*k;y=lo.n.y+(hi.n.y-lo.n.y)*k;msg='Posição aproximada, entre os números '+lo.v+' e '+hi.v+'. Toque sobre a sua casa para acertar.'}
+  else if((lo&&q.v-lo.v<=20)||(hi&&hi.v-q.v<=20)){const r=(lo&&hi)?((q.v-lo.v)<(hi.v-q.v)?lo:hi):(lo||hi);x=r.n.x;y=r.n.y;msg='O número exato não aparece na planta; o alfinete está no '+r.v+', o mais próximo. Toque sobre a sua casa para acertar.'}
+  else return false;
+  setPin(x,y,'aprox',msg);flyTo(x,y,2.2);return true}
+let gT=0;num.addEventListener('input',()=>{clearTimeout(gT);gT=setTimeout(()=>{if(pinMode==='manual'||pinMode==='gps')return;if(!geocode()&&selStreet&&parseN(num.value))setState('rua','Não achei esse número na planta. Toque no mapa sobre a sua casa.')},350)});
+/* GPS */
+document.getElementById('gps').onclick=()=>{if(!navigator.geolocation){setState('erro','Este aparelho não informou a localização. Toque no mapa sobre a sua casa.');return}
+  setState('none','Buscando a localização do aparelho…');
+  navigator.geolocation.getCurrentPosition(p=>{const [E,N]=UTM.fwd(p.coords.latitude,p.coords.longitude);const x=E-OX+SAT_OFF[0],y=N-OY+SAT_OFF[1];
+    if(x<0||y<0||x>28000||y>30000){setState('erro','A localização recebida fica fora de Guanambi. Toque no mapa sobre a sua casa.');return}
+    box.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});setPin(x,y,'gps','Localização do aparelho (precisão de cerca de '+Math.round(p.coords.accuracy)+' m). Confira e, se preciso, toque sobre a casa para ajustar.');flyTo(x,y,2.4)},
+   ()=>setState('erro','Não foi possível obter a localização. Toque no mapa sobre a sua casa.'),{enableHighAccuracy:true,timeout:15000,maximumAge:0})};
+/* zona */
+const urb=document.getElementById('urb'),rur=document.getElementById('rur');
+document.querySelectorAll('input[name=zona]').forEach(r=>r.addEventListener('change',()=>{const rural=document.querySelector('input[name=zona]:checked').value==='rural';urb.hidden=rural;rur.hidden=!rural;
+  if(rural&&!pin)setState('none','Toque no mapa sobre a sua casa. As estradas rurais aparecem ao afastar o mapa.')}));
+/* telefone */
+const tel=document.getElementById('tel');tel.addEventListener('input',()=>{let d=tel.value.replace(/\D/g,'').slice(0,11);let o=d;
+  if(d.length>2)o='('+d.slice(0,2)+') '+d.slice(2);if(d.length>7)o='('+d.slice(0,2)+') '+d.slice(2,d.length-4)+'-'+d.slice(-4);tel.value=o});
+/* envio */
+const f=document.getElementById('f');
+function err(id,show,el){document.getElementById('e-'+id).hidden=!show;if(el)el.classList.toggle('invalid',show);return show}
+f.addEventListener('submit',async e=>{e.preventDefault();const g=id=>document.getElementById(id);const bad=[];
+  if(err('consent',!g('consent').checked))bad.push(g('consent'));
+  if(err('nome',g('nome').value.trim().length<3,g('nome')))bad.push(g('nome'));
+  const td=tel.value.replace(/\D/g,'');if(err('tel',td.length<10,tel))bad.push(tel);
+  if(err('pin',!pin))bad.push(box);
+  if(err('comum',!g('comum').value,g('comum')))bad.push(g('comum'));
+  const ages=[0,1,2,3,4].map(i=>+g('i'+i).value||0),totM=ages.reduce((a,b)=>a+b,0);
+  if(err('idade',totM<1))bad.push(g('i0'));
+  if(err('qsc',g('qsc').value==='',g('qsc')))bad.push(g('qsc'));
+  const temOutra=document.querySelector('input[name=temoutra]:checked').value==='sim';
+  if(err('outra',temOutra&&!g('outra').value,g('outra')))bad.push(g('outra'));
+  if(bad.length){bad[0].scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});if(bad[0].focus&&bad[0]!==box)bad[0].focus({preventScroll:true});return}
+  const rural=document.querySelector('input[name=zona]:checked').value==='rural';const qsc=+g('qsc').value||0;
+  const rec={data_hora:new Date().toISOString(),responsavel:g('nome').value.trim(),telefone:td,zona:rural?'Rural':'Urbana',
+    rua:rural?'':g('rua').value.trim(),numero:rural?'':g('num').value.trim(),complemento:rural?'':g('comp').value.trim(),bairro:rural?'':g('bairro').value.trim(),
+    localidade_rural:rural?g('local').value.trim():'',referencia:g('ref').value.trim(),comum:g('comum').value,
+    freq_0_11:ages[0],freq_12_17:ages[1],freq_18_29:ages[2],freq_30_59:ages[3],freq_60_mais:ages[4],total_frequentam:totM,
+    qtd_santa_ceia:qsc,qtd_sem_santa_ceia:totM-qsc,outra_comum:temOutra?g('outra').value:'',outra_comum_qtd:temOutra?+g('outraq').value:0,
+    latitude:+pin.lat.toFixed(7),longitude:+pin.lon.toFixed(7),utm_e:+(pin.x+OX-SAT_OFF[0]).toFixed(1),utm_n:+(pin.y+OY-SAT_OFF[1]).toFixed(1),
+    origem_posicao:{exato:'Número achado na planta',aprox:'Aproximada pelo número',manual:'Marcada no mapa',gps:'GPS do aparelho'}[pinMode]||pinMode};
+  const btn=g('send');btn.disabled=true;btn.textContent='Enviando…';g('e-send').hidden=true;
+  try{if(ENDPOINT&&!ENDPOINT.startsWith('__')){await fetch(ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(rec)});g('demonote').hidden=true}
+      else g('demonote').hidden=false;
+    const labels={responsavel:'Responsável',telefone:'Telefone',zona:'Zona',rua:'Rua',numero:'Número',complemento:'Complemento',bairro:'Bairro',localidade_rural:'Localidade rural',referencia:'Referência',comum:'Comum',total_frequentam:'Frequentam',freq_0_11:'0 a 11 anos',freq_12_17:'12 a 17',freq_18_29:'18 a 29',freq_30_59:'30 a 59',freq_60_mais:'60 ou mais',qtd_santa_ceia:'Tomam santa ceia',qtd_sem_santa_ceia:'Sem santa ceia',outra_comum:'Outra comum',outra_comum_qtd:'Quantos na outra comum',latitude:'Latitude',longitude:'Longitude',origem_posicao:'Origem da posição'};
+    const t=g('recap');t.innerHTML='';for(const k in labels){if(rec[k]===''||rec[k]==null||((k.startsWith('freq_')||k==='outra_comum_qtd')&&!rec[k]))continue;const tr=t.insertRow();tr.insertCell().textContent=labels[k];tr.insertCell().textContent=rec[k]}
+    [...f.children].forEach(c=>{if(c.id!=='done'&&!c.classList.contains('top'))c.hidden=true});g('done').hidden=false;g('done').scrollIntoView({block:'start'});
+  }catch(x){g('e-send').textContent='Não foi possível enviar. Verifique a internet e tente de novo.';g('e-send').hidden=false}
+  btn.disabled=false;btn.textContent='Enviar cadastro'});
+document.getElementById('again').onclick=()=>{f.reset();document.getElementById('outrabox').hidden=true;fillOutra();updTot();pin=null;pinMode=null;selStreet=null;lc.textContent='';setState('none','Ainda sem posição no mapa. Digite a rua e o número, ou toque no mapa sobre a sua casa.');
+  urb.hidden=false;rur.hidden=true;[...f.children].forEach(c=>c.hidden=c.id==='done'||c.id==='rur');document.getElementById('done').hidden=true;resize();fitBox(...CITY);window.scrollTo(0,0)};
+/* total de moradores */
+const ageEls=[0,1,2,3,4].map(i=>document.getElementById('i'+i));const totEl=document.getElementById('tot');
+const qscEl=document.getElementById('qsc'),semEl=document.getElementById('semsc'),outraEl=document.getElementById('outra'),outraQ=document.getElementById('outraq'),comumEl=document.getElementById('comum');
+function fillSel(el,from,to,keep,first){const v=el.value;el.innerHTML=first||'';for(let i=from;i<=to;i++){const o=document.createElement('option');o.value=i;o.textContent=i;el.appendChild(o)}if(keep&&v!==''&&+v>=from&&+v<=to)el.value=v}
+function updSem(){const n=ageEls.reduce((a,e)=>a+(+e.value||0),0);if(qscEl.value===''){semEl.textContent='Os demais contam como frequentam sem tomar santa ceia (crianças, não batizados).';return}
+  const r=n-(+qscEl.value);semEl.innerHTML='<b>'+r+'</b> '+(r===1?'frequenta':'frequentam')+' sem tomar santa ceia.'}
+function updTot(){const n=ageEls.reduce((a,e)=>a+(+e.value||0),0);totEl.innerHTML='Total: <b>'+n+'</b> '+(n===1?'frequenta':'frequentam');if(n>0)document.getElementById('e-idade').hidden=true;
+  fillSel(qscEl,0,n,true,'<option value="">Selecione</option>');fillSel(outraQ,1,Math.max(1,n),true);updSem()}
+ageEls.forEach(e=>e.addEventListener('change',updTot));qscEl.addEventListener('change',updSem);
+function fillOutra(){const cur=outraEl.value;outraEl.innerHTML='<option value="">Selecione</option>';[...comumEl.options].slice(1).forEach(o=>{if(o.value===comumEl.value)return;const n=document.createElement('option');n.textContent=o.value;outraEl.appendChild(n)});outraEl.value=[...outraEl.options].some(o=>o.value===cur)?cur:''}
+comumEl.addEventListener('change',fillOutra);fillOutra();updTot();
+document.querySelectorAll('input[name=temoutra]').forEach(r=>r.addEventListener('change',()=>{document.getElementById('outrabox').hidden=document.querySelector('input[name=temoutra]:checked').value!=='sim'}));
+outraEl.addEventListener('change',()=>{document.getElementById('e-outra').hidden=true;outraEl.classList.remove('invalid')});
+/* limpar erros ao corrigir */
+[['consent','consent'],['nome','nome'],['tel','tel'],['comum','comum'],['qsc','qsc']].forEach(([id,e])=>{const el=document.getElementById(id);['input','change'].forEach(ev=>el.addEventListener(ev,()=>{document.getElementById('e-'+e).hidden=true;el.classList.remove('invalid')}))});
+/* início */
+requestAnimationFrame(()=>{resize();V.cx=(CITY[0]+CITY[2])/2;V.cy=(CITY[1]+CITY[3])/2;V.s=Math.min((W-20)/(CITY[2]-CITY[0]),(H-20)/(CITY[3]-CITY[1]));req()});
+window.__map={draw,V,STREETS,search,choose,setPin,geocode,num};
+})();
+</script>
+</body>
+</html>

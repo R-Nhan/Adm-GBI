@@ -1,0 +1,10 @@
+[
+ {"comum": "Central Antiga – Rua Rio de Janeiro", "nome": "Central Antiga (BR-04-0119)", "lat": -14.222561, "lon": -42.782064},
+ {"comum": "São Francisco", "nome": "São Francisco (BR-04-0124)", "lat": -14.217064, "lon": -42.772748},
+ {"comum": "Brasília", "nome": "Brasília (BR-04-0989)", "lat": -14.237541, "lon": -42.767021},
+ {"comum": "São Sebastião", "nome": "São Sebastião (BR-04-1480)", "lat": -14.202108, "lon": -42.758329},
+ {"comum": "Morada Nova", "nome": "Morada Nova (BR-04-1581)", "lat": -14.228061, "lon": -42.760503},
+ {"comum": "Alvorada", "nome": "Alvorada (BR-04-1311)", "lat": -14.218030, "lon": -42.797040},
+ {"comum": "Nova Central – Novo Horizonte", "nome": "Nova Central (BR-04-2301)", "lat": -14.209622, "lon": -42.780061},
+ {"comum": "José Humberto Nunes", "nome": "José Humberto Nunes (BR-04-2302)", "lat": -14.204693, "lon": -42.793914}
+]
