@@ -90,10 +90,12 @@ button{font:inherit;cursor:pointer}
 @media (min-width:960px){.mapbox{grid-column:2;grid-row:1 / span 12;position:sticky;top:16px;height:calc(100vh - 32px);min-height:520px;max-height:none}}
 #map{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab;display:block}
 #map.drag{cursor:grabbing}
+.mapbox[data-adjust="true"] #map{cursor:crosshair}
 .mapctl{position:absolute;right:10px;top:10px;display:grid;gap:6px;z-index:5}
 .mapctl button{width:40px;height:40px;border-radius:var(--r);border:1px solid var(--accent);background:var(--card);color:var(--accent);font-size:20px;line-height:1;font-weight:600;display:grid;place-items:center}
 .mapctl button.wide{font-size:12px;width:auto;padding:0 10px}
-.maphint{position:absolute;left:10px;right:60px;top:10px;z-index:4;font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;color:var(--muted);max-width:420px}
+.mapctl button:disabled{cursor:not-allowed;opacity:.5}
+.maphint{position:absolute;left:10px;right:118px;top:10px;z-index:4;font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;color:var(--muted);max-width:420px}
 .maphint b{color:var(--ink)}
 .scale{position:absolute;left:10px;bottom:10px;z-index:4;font-family:var(--f-mono);font-size:11px;color:var(--muted);display:grid;gap:2px}
 .scale i{display:block;height:4px;border:1px solid var(--muted);border-top:0}
@@ -185,14 +187,15 @@ button{font:inherit;cursor:pointer}
     </div>
     <div id="rur" class="field" hidden><label for="local">Localidade / povoado e como chegar</label><textarea id="local" name="local" placeholder="ex.: Povoado de Ceraíma, 2ª casa depois da escola"></textarea></div>
     <div class="field"><label for="ref">Ponto de referência</label><input type="text" id="ref" name="ref" placeholder="ex.: ao lado do mercadinho, rua atrás da escola"></div>
-    <div class="locstate" id="locstate" data-k="none" aria-live="polite"><span class="dot"></span><div><div id="loctext">Ainda sem posição no mapa. Digite a rua e o número, ou toque no mapa sobre a sua casa.</div><div class="coords" id="loccoords"></div></div></div>
+    <div class="locstate" id="locstate" data-k="none" aria-live="polite"><span class="dot"></span><div><div id="loctext">Ainda sem posição no mapa. Digite a rua e o número para localizar a casa automaticamente.</div><div class="coords" id="loccoords"></div></div></div>
     <p class="errmsg" id="e-pin" hidden>Marque a posição da casa no mapa antes de enviar.</p>
   </section>
 
-  <div class="mapbox" id="mapbox" aria-label="Planta da cidade de Guanambi. Toque para marcar a casa.">
+  <div class="mapbox" id="mapbox" aria-label="Planta da cidade de Guanambi. O mapa começa somente para visualização.">
     <canvas id="map"></canvas>
-    <div class="maphint" id="maphint"><b>Toque sobre a sua casa</b> para marcar ou ajustar. Arraste para mover, use dois dedos ou os botões para aproximar.</div>
+    <div class="maphint" id="maphint"><b>Mapa para visualização.</b> Digite a rua e o número; depois use “Ajustar ponto” somente se necessário.</div>
     <div class="mapctl">
+      <button type="button" id="adjustloc" class="wide" aria-pressed="false" disabled>Marcar ponto</button>
       <button type="button" id="zin" aria-label="Aproximar">+</button>
       <button type="button" id="zout" aria-label="Afastar">−</button>
       <button type="button" id="zall" class="wide" aria-label="Ver a cidade inteira">Cidade</button>
@@ -400,6 +403,10 @@ document.getElementById('zin').onclick=()=>{cancelAnimationFrame(anim);zoomAt(1.
 document.getElementById('zout').onclick=()=>{cancelAnimationFrame(anim);zoomAt(1/1.6,W/2,H/2)};
 document.getElementById('zall').onclick=()=>fitBox(...CITY);
 const satBtn=document.getElementById('sat');satBtn.onclick=()=>{satOn=!satOn;satBtn.setAttribute('aria-pressed',satOn);req()};
+const adjustBtn=document.getElementById('adjustloc'),mapHint=document.getElementById('maphint');let adjustMode=false;
+function updateAdjust(){const rural=document.querySelector('input[name=zona]:checked').value==='rural';const ready=!!pin||(!rural&&!!selStreet)||(rural&&document.getElementById('local').value.trim().length>2);adjustBtn.disabled=!ready;adjustBtn.textContent=adjustMode?'Cancelar ajuste':(pin?'Ajustar ponto':'Marcar ponto');adjustBtn.setAttribute('aria-pressed',adjustMode);box.dataset.adjust=adjustMode?'true':'false'}
+function stopAdjust(){adjustMode=false;updateAdjust();mapHint.innerHTML='<b>Mapa para visualização.</b> Para mover o ponto, use “Ajustar ponto”.'}
+adjustBtn.onclick=()=>{if(adjustBtn.disabled)return;adjustMode=!adjustMode;updateAdjust();mapHint.hidden=false;mapHint.innerHTML=adjustMode?'<b>Ajuste ativado.</b> Toque uma vez no local exato da casa.':'<b>Ajuste cancelado.</b> O mapa voltou ao modo de visualização.'};
 if(location.hash==='#ajuste'){const cb=document.getElementById('calib');cb.hidden=false;cb.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.p){const [a,c]=b.dataset.p.split(',').map(Number);SAT_OFF[0]=a;SAT_OFF[1]=c}else{const [a,c]=b.dataset.d.split(',').map(Number);SAT_OFF[0]+=a;SAT_OFF[1]+=c}
   document.getElementById('calibv').textContent='SAT_OFF = ['+SAT_OFF[0]+', '+SAT_OFF[1]+']';req()});document.getElementById('calibv').textContent='SAT_OFF = ['+SAT_OFF[0]+', '+SAT_OFF[1]+']'}
 cv.addEventListener('wheel',e=>{e.preventDefault();cancelAnimationFrame(anim);const r=cv.getBoundingClientRect();zoomAt(Math.exp(-e.deltaY*0.0018),e.clientX-r.left,e.clientY-r.top)},{passive:false});
@@ -413,7 +420,7 @@ cv.addEventListener('pointermove',e=>{if(!ptr.has(e.pointerId)||!gest)return;con
   else if(gest.t==='pinch'&&ptr.size===2){const [a,b]=[...ptr.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
     V.cx-=(mx-gest.mx)/V.s;V.cy+=(my-gest.my)/V.s;zoomAt(d/gest.d,mx,my);gest.d=d;gest.mx=mx;gest.my=my}});
 function up(e){if(!ptr.has(e.pointerId))return;const p=ptr.get(e.pointerId);ptr.delete(e.pointerId);cv.classList.remove('drag');
-  if(gest&&gest.t==='pan'&&!gest.moved&&ptr.size===0&&performance.now()-gest.t0<700){setPin(wx(p.x),wy(p.y),'manual');}
+  if(adjustMode&&gest&&gest.t==='pan'&&!gest.moved&&ptr.size===0&&performance.now()-gest.t0<700){setPin(wx(p.x),wy(p.y),'manual');stopAdjust();}
   if(ptr.size===1){const q=[...ptr.values()][0];gest={t:'pan',x0:q.x,y0:q.y,lx:q.x,ly:q.y,t0:0,moved:true}}else if(ptr.size===0)gest=null}
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 let lastTap=0;cv.addEventListener('dblclick',e=>{e.preventDefault();const r=cv.getBoundingClientRect();zoomAt(2,e.clientX-r.left,e.clientY-r.top)});
@@ -423,8 +430,8 @@ const ls=document.getElementById('locstate'),lt=document.getElementById('loctext
 let pinMode=null;
 function setState(k,msg){ls.dataset.k=k;lt.textContent=msg}
 function setPin(x,y,mode,msg){pin={x,y};pinMode=mode;const [lat,lon]=UTM.inv(x+OX-SAT_OFF[0],y+OY-SAT_OFF[1]);pin.lat=lat;pin.lon=lon;
-  document.getElementById('maphint').hidden=true;lc.textContent=lat.toFixed(6)+', '+lon.toFixed(6);document.getElementById('e-pin').hidden=true;
-  if(mode==='manual')setState('manual','Posição marcada por você no mapa. Se precisar, toque de novo para ajustar.');else if(msg)setState(mode,msg);req()}
+  mapHint.hidden=true;lc.textContent=lat.toFixed(6)+', '+lon.toFixed(6);document.getElementById('e-pin').hidden=true;
+  if(mode==='manual')setState('manual','Posição ajustada por você no mapa.');else if(msg)setState(mode,msg);updateAdjust();req()}
 /* ---------- busca de rua ---------- */
 const rua=document.getElementById('rua'),sug=document.getElementById('sug'),num=document.getElementById('num');
 let opts=[],act=-1;
@@ -438,14 +445,14 @@ function render(){sug.innerHTML='';if(!opts.length){const li=document.createElem
     li.addEventListener('pointerdown',e=>{e.preventDefault();choose(s)});sug.appendChild(li)});
   sug.hidden=false;rua.setAttribute('aria-expanded','true');if(act>=0)rua.setAttribute('aria-activedescendant','o'+act)}
 function closeSug(){sug.hidden=true;rua.setAttribute('aria-expanded','false');rua.removeAttribute('aria-activedescendant')}
-rua.addEventListener('input',()=>{selStreet=null;req();const q=rua.value;if(norm(q).length<2){closeSug();return}opts=search(q);act=opts.length?0:-1;render()});
+rua.addEventListener('input',()=>{selStreet=null;if(pinMode!=='gps'){pin=null;pinMode=null;lc.textContent='';mapHint.hidden=false}adjustMode=false;updateAdjust();req();const q=rua.value;if(norm(q).length<2){closeSug();return}opts=search(q);act=opts.length?0:-1;render()});
 rua.addEventListener('keydown',e=>{if(sug.hidden)return;if(e.key==='ArrowDown'){act=Math.min(opts.length-1,act+1);render();e.preventDefault()}
   else if(e.key==='ArrowUp'){act=Math.max(0,act-1);render();e.preventDefault()}else if(e.key==='Enter'){if(act>=0){choose(opts[act]);e.preventDefault()}}else if(e.key==='Escape')closeSug()});
 rua.addEventListener('blur',()=>setTimeout(closeSug,120));
-function choose(s){selStreet=s;rua.value=s.n;closeSug();
+function choose(s){selStreet=s;rua.value=s.n;closeSug();updateAdjust();
   const xs=s.pts.map(p=>p[0]),ys=s.pts.map(p=>p[1]);
   if(!geocode(true)){fitBox(Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys),260);
-    if(!pin||pinMode!=='manual')setState('rua','Rua localizada (em destaque no mapa). Digite o número ou toque sobre a sua casa.')}
+    if(!pin||pinMode!=='manual')setState('rua','Rua localizada (em destaque no mapa). Digite o número para posicionar o ponto automaticamente.')}
   const b=document.getElementById('bairro');const m=s.n.match(/(?:Bairro|Lot\.|Cond\.)\s+([^-]+)/);if(m&&!b.value){const alvo=norm(m[1]);const op=[...b.options].find(o=>norm(o.value)===alvo);if(op)b.value=op.value}
   num.focus({preventScroll:true})}
 function segDist(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy;let t=L?((px-ax)*dx+(py-ay)*dy)/L:0;t=Math.max(0,Math.min(1,t));return Math.hypot(px-ax-t*dx,py-ay-t*dy)}
@@ -456,25 +463,26 @@ const parseN=t=>{const m=String(t).toUpperCase().replace(/\s/g,'').match(/^0*(\d
 function geocode(fromChoose){const s=selStreet;if(!s)return false;const q=parseN(num.value);if(!q)return false;
   const cand=nearNums(s,45);let best=null;
   for(const c of cand){const p=parseN(c.n.t);if(!p||p.v!==q.v)continue;const sc=c.d+(p.suf===q.suf?0:8);if(!best||sc<best.sc)best={sc,c}}
-  if(best&&best.c.d<30){const n=best.c.n;setPin(n.x,n.y,'exato','Número '+num.value.trim()+' encontrado na planta. Confira se o alfinete está sobre a sua casa; se não, toque no lugar certo.');flyTo(n.x,n.y,2.6);return true}
+  if(best&&best.c.d<30){const n=best.c.n;setPin(n.x,n.y,'exato','Número '+num.value.trim()+' encontrado na planta. Confira o ponto e use “Ajustar ponto” somente se necessário.');flyTo(n.x,n.y,2.6);return true}
   let lo=null,hi=null;for(const c of cand){if(c.d>28)continue;const p=parseN(c.n.t);if(!p)continue;if(p.v<q.v&&(!lo||p.v>lo.v||(p.v===lo.v&&c.d<lo.d)))lo={v:p.v,n:c.n,d:c.d};if(p.v>q.v&&(!hi||p.v<hi.v||(p.v===hi.v&&c.d<hi.d)))hi={v:p.v,n:c.n,d:c.d}}
   let x,y,msg;
-  if(lo&&hi&&Math.hypot(lo.n.x-hi.n.x,lo.n.y-hi.n.y)<250&&(hi.v-lo.v)<=120){const k=(q.v-lo.v)/(hi.v-lo.v);x=lo.n.x+(hi.n.x-lo.n.x)*k;y=lo.n.y+(hi.n.y-lo.n.y)*k;msg='Posição aproximada, entre os números '+lo.v+' e '+hi.v+'. Toque sobre a sua casa para acertar.'}
-  else if((lo&&q.v-lo.v<=20)||(hi&&hi.v-q.v<=20)){const r=(lo&&hi)?((q.v-lo.v)<(hi.v-q.v)?lo:hi):(lo||hi);x=r.n.x;y=r.n.y;msg='O número exato não aparece na planta; o alfinete está no '+r.v+', o mais próximo. Toque sobre a sua casa para acertar.'}
-  else return false;
+  if(lo&&hi&&Math.hypot(lo.n.x-hi.n.x,lo.n.y-hi.n.y)<250&&(hi.v-lo.v)<=120){const k=(q.v-lo.v)/(hi.v-lo.v);x=lo.n.x+(hi.n.x-lo.n.x)*k;y=lo.n.y+(hi.n.y-lo.n.y)*k;msg='Posição aproximada, entre os números '+lo.v+' e '+hi.v+'. Use “Ajustar ponto” se necessário.'}
+  else if((lo&&q.v-lo.v<=20)||(hi&&hi.v-q.v<=20)){const r=(lo&&hi)?((q.v-lo.v)<(hi.v-q.v)?lo:hi):(lo||hi);x=r.n.x;y=r.n.y;msg='O número exato não aparece na planta; o ponto está no '+r.v+', o mais próximo. Use “Ajustar ponto” se necessário.'}
+  else{const known=cand.map(c=>({c,p:parseN(c.n.t)})).filter(z=>z.p).sort((a,b)=>Math.abs(a.p.v-q.v)-Math.abs(b.p.v-q.v)||a.c.d-b.c.d)[0];const base=known?known.c.n:s.pts[Math.floor(s.pts.length/2)];x=base.x;y=base.y;msg=known?'O número exato não aparece na planta; o ponto foi colocado perto do número '+known.p.v+'. Use “Ajustar ponto” se necessário.':'O ponto foi colocado aproximadamente nesta rua. Use “Ajustar ponto” para indicar a casa exata.'}
   setPin(x,y,'aprox',msg);flyTo(x,y,2.2);return true}
-let gT=0;num.addEventListener('input',()=>{clearTimeout(gT);gT=setTimeout(()=>{if(pinMode==='manual'||pinMode==='gps')return;if(!geocode()&&selStreet&&parseN(num.value))setState('rua','Não achei esse número na planta. Toque no mapa sobre a sua casa.')},350)});
+let gT=0;num.addEventListener('input',()=>{clearTimeout(gT);gT=setTimeout(()=>{if(pinMode==='gps')return;geocode();updateAdjust()},350)});
 /* GPS */
-document.getElementById('gps').onclick=()=>{if(!navigator.geolocation){setState('erro','Este aparelho não informou a localização. Toque no mapa sobre a sua casa.');return}
+document.getElementById('gps').onclick=()=>{if(!navigator.geolocation){setState('erro','Este aparelho não informou a localização. Preencha o endereço e use “Marcar ponto”.');return}
   setState('none','Buscando a localização do aparelho…');
   navigator.geolocation.getCurrentPosition(p=>{const [E,N]=UTM.fwd(p.coords.latitude,p.coords.longitude);const x=E-OX+SAT_OFF[0],y=N-OY+SAT_OFF[1];
-    if(x<0||y<0||x>28000||y>30000){setState('erro','A localização recebida fica fora de Guanambi. Toque no mapa sobre a sua casa.');return}
-    box.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});setPin(x,y,'gps','Localização do aparelho (precisão de cerca de '+Math.round(p.coords.accuracy)+' m). Confira e, se preciso, toque sobre a casa para ajustar.');flyTo(x,y,2.4)},
-   ()=>setState('erro','Não foi possível obter a localização. Toque no mapa sobre a sua casa.'),{enableHighAccuracy:true,timeout:15000,maximumAge:0})};
+    if(x<0||y<0||x>28000||y>30000){setState('erro','A localização recebida fica fora de Guanambi. Preencha o endereço e use “Marcar ponto”.');return}
+    box.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});setPin(x,y,'gps','Localização do aparelho (precisão de cerca de '+Math.round(p.coords.accuracy)+' m). Confira e use “Ajustar ponto” se necessário.');flyTo(x,y,2.4)},
+   ()=>setState('erro','Não foi possível obter a localização. Preencha o endereço e use “Marcar ponto”.'),{enableHighAccuracy:true,timeout:15000,maximumAge:0})};
 /* zona */
 const urb=document.getElementById('urb'),rur=document.getElementById('rur');
 document.querySelectorAll('input[name=zona]').forEach(r=>r.addEventListener('change',()=>{const rural=document.querySelector('input[name=zona]:checked').value==='rural';urb.hidden=rural;rur.hidden=!rural;
-  if(rural&&!pin)setState('none','Toque no mapa sobre a sua casa. As estradas rurais aparecem ao afastar o mapa.')}));
+  if(rural&&!pin)setState('none','Descreva a localidade e use “Marcar ponto” para indicar a casa no mapa.');updateAdjust()}));
+document.getElementById('local').addEventListener('input',updateAdjust);
 /* telefone */
 const tel=document.getElementById('tel');tel.addEventListener('input',()=>{let d=tel.value.replace(/\D/g,'').slice(0,11);let o=d;
   if(d.length>2)o='('+d.slice(0,2)+') '+d.slice(2);if(d.length>7)o='('+d.slice(0,2)+') '+d.slice(2,d.length-4)+'-'+d.slice(-4);tel.value=o});
@@ -509,7 +517,7 @@ f.addEventListener('submit',async e=>{e.preventDefault();const g=id=>document.ge
     [...f.children].forEach(c=>{if(c.id!=='done'&&!c.classList.contains('top'))c.hidden=true});g('done').hidden=false;g('done').scrollIntoView({block:'start'});
   }catch(x){g('e-send').textContent='Não foi possível enviar. Verifique a internet e tente de novo.';g('e-send').hidden=false}
   btn.disabled=false;btn.textContent='Enviar cadastro'});
-document.getElementById('again').onclick=()=>{f.reset();document.getElementById('outrabox').hidden=true;fillOutra();updTot();pin=null;pinMode=null;selStreet=null;lc.textContent='';setState('none','Ainda sem posição no mapa. Digite a rua e o número, ou toque no mapa sobre a sua casa.');
+document.getElementById('again').onclick=()=>{f.reset();document.getElementById('outrabox').hidden=true;fillOutra();updTot();pin=null;pinMode=null;selStreet=null;adjustMode=false;lc.textContent='';setState('none','Ainda sem posição no mapa. Digite a rua e o número para localizar a casa automaticamente.');updateAdjust();mapHint.hidden=false;mapHint.innerHTML='<b>Mapa para visualização.</b> Digite a rua e o número; depois use “Ajustar ponto” somente se necessário.';
   urb.hidden=false;rur.hidden=true;[...f.children].forEach(c=>c.hidden=c.id==='done'||c.id==='rur');document.getElementById('done').hidden=true;resize();fitBox(...CITY);window.scrollTo(0,0)};
 /* total de moradores */
 const ageEls=[0,1,2,3,4].map(i=>document.getElementById('i'+i));const totEl=document.getElementById('tot');
