@@ -186,7 +186,6 @@ button{font:inherit;cursor:pointer}
       <div class="field"><label for="bairro">Bairro</label><select id="bairro" name="bairro"><option value="">Selecione o bairro</option></select></div>
     </div>
     <div id="rur" class="field" hidden><label for="local">Localidade / povoado e como chegar</label><textarea id="local" name="local" placeholder="ex.: Povoado de Ceraíma, 2ª casa depois da escola"></textarea></div>
-    <div class="field"><label for="ref">Ponto de referência</label><input type="text" id="ref" name="ref" placeholder="ex.: ao lado do mercadinho, rua atrás da escola"></div>
     <div class="locstate" id="locstate" data-k="none" aria-live="polite"><span class="dot"></span><div><div id="loctext">Ainda sem posição no mapa. Digite a rua e o número para localizar a casa automaticamente.</div><div class="coords" id="loccoords"></div></div></div>
     <p class="errmsg" id="e-pin" hidden>Marque a posição da casa no mapa antes de enviar.</p>
   </section>
@@ -479,7 +478,7 @@ f.addEventListener('submit',async e=>{e.preventDefault();const g=id=>document.ge
   const rural=document.querySelector('input[name=zona]:checked').value==='rural';const qsc=+g('qsc').value||0;
   const rec={data_hora:new Date().toISOString(),responsavel:g('nome').value.trim(),telefone:td,zona:rural?'Rural':'Urbana',
     rua:rural?'':g('rua').value.trim(),numero:rural?'':g('num').value.trim(),complemento:rural?'':g('comp').value.trim(),bairro:rural?'':g('bairro').value.trim(),
-    localidade_rural:rural?g('local').value.trim():'',referencia:g('ref').value.trim(),comum:g('comum').value,
+    localidade_rural:rural?g('local').value.trim():'',referencia:'',comum:g('comum').value,
     freq_0_11:ages[0],freq_12_17:ages[1],freq_18_29:ages[2],freq_30_59:ages[3],freq_60_mais:ages[4],total_frequentam:totM,
     qtd_santa_ceia:qsc,qtd_sem_santa_ceia:totM-qsc,outra_comum:'',outra_comum_qtd:0,
     latitude:+pin.lat.toFixed(7),longitude:+pin.lon.toFixed(7),utm_e:+(pin.x+OX-SAT_OFF[0]).toFixed(1),utm_n:+(pin.y+OY-SAT_OFF[1]).toFixed(1),
