@@ -104,4 +104,17 @@ Os nomes das ruas vêm da camada **TEXTODERUA** do DWG, e os números das casas 
 
 ## Colunas da planilha
 
-data_hora, responsavel, telefone, zona, rua, numero, complemento, bairro, localidade_rural, referencia, comum, freq_0_11, freq_12_17, freq_18_29, freq_30_59, freq_60_mais, total_frequentam, qtd_santa_ceia, qtd_sem_santa_ceia, outra_comum, outra_comum_qtd, latitude, longitude, utm_e, utm_n (SIRGAS 2000), origem_posicao, telefone_repetido.
+data_hora, responsavel, telefone, zona, rua, numero, complemento, bairro, localidade_rural, referencia, comum, freq_0_11, freq_12_17, freq_18_29, freq_30_59, freq_60_mais, total_frequentam, qtd_santa_ceia, qtd_sem_santa_ceia, outra_comum, outra_comum_qtd, latitude, longitude, utm_e, utm_n (SIRGAS 2000), origem_posicao, telefone_repetido, endereco_repetido.
+
+`outra_comum` e `outra_comum_qtd` chegam vazias desde que o formulário passou a registrar uma comum só por casa.
+
+### Cadastros repetidos
+
+O Apps Script não bloqueia envios repetidos: ele marca **SIM** para revisão.
+
+- `telefone_repetido`: o telefone já apareceu num cadastro anterior.
+- `endereco_repetido`: a mesma rua + número + complemento já apareceu num cadastro anterior. A comparação ignora acento, maiúsculas, pontuação, zeros à esquerda e palavras como "Rua"/"Av." ("R. Floriano Peixoto, 0220" = "Rua Floriano Peixoto, 220"). Complementos diferentes (Apto 1 e Apto 2) não contam como repetidos. Endereços sem número (s/n) e da zona rural não são comparados.
+
+O primeiro cadastro de cada telefone ou endereço fica sem marca; os seguintes recebem SIM. No mapa, cadastros com qualquer uma das duas marcas ficam escondidos, a não ser que se marque "Incluir cadastros com telefone ou endereço repetido".
+
+Ao colar uma versão que traz uma coluna nova, o cabeçalho da planilha é completado sozinho no próximo envio. Para marcar os cadastros que já existiam, rode uma vez a função `marcarRepetidos` no editor do Apps Script (escolha a função no menu ao lado de "Executar").

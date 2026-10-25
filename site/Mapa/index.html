@@ -116,7 +116,7 @@ select,input[type=password],input[type=text]{width:100%;font:inherit;color:var(-
         <select id="modo"><option value="tot">frequentam (todas as idades)</option><option value="0">têm de 0 a 11 anos</option><option value="1">têm de 12 a 17 anos</option><option value="2">têm de 18 a 29 anos</option><option value="3">têm de 30 a 59 anos</option><option value="4">têm 60 anos ou mais</option></select></div>
       <label class="chk"><input type="checkbox" id="lpts" checked><span>Um ponto por família</span></label>
       <label class="chk"><input type="checkbox" id="lheat"><span>Mancha de densidade (sombra cinza: quanto mais escura, mais gente), soma das comuns visíveis</span></label>
-      <label class="chk"><input type="checkbox" id="lrep"><span>Incluir cadastros com telefone repetido (possível casa duplicada)</span></label>
+      <label class="chk"><input type="checkbox" id="lrep"><span>Incluir cadastros com telefone ou endereço repetido (possível casa duplicada)</span></label>
       <div id="casagrp" class="sec" hidden>
         <label class="chk"><input type="checkbox" id="lcasa" checked><span>Casas de oração, com o raio de cobertura</span></label>
         <div class="field"><label for="raio">Raio de cobertura (em linha reta)</label><select id="raio"><option value="500">500 m</option><option value="1000" selected>1 km</option><option value="1500">1,5 km</option><option value="2000">2 km</option></select></div>
@@ -339,7 +339,7 @@ function showTip(list,X,Y){if(!list.length){tip.hidden=true;return}
     const l2=document.createElement('div');l2.className='row';l2.textContent='0–11: '+p.f[0]+' · 12–17: '+p.f[1]+' · 18–29: '+p.f[2]+' · 30–59: '+p.f[3]+' · 60+: '+p.f[4];
     it.append(t,l1,l2);
     if(p.oq){const l3=document.createElement('div');l3.className='row';l3.textContent='+ '+p.oq+' em '+p.oc;it.append(l3)}
-    if(p.rep){const l4=document.createElement('div');l4.className='row';l4.textContent='Telefone repetido: possível cadastro duplicado';it.append(l4)}
+    if(p.rep){const l4=document.createElement('div');l4.className='row';l4.textContent='Telefone ou endereço repetido: possível cadastro duplicado';it.append(l4)}
     tip.append(it)});
   if(list.length>4){const m=document.createElement('div');m.className='more';m.textContent='e mais '+(list.length-4)+' família(s) neste ponto';tip.append(m)}
   tip.hidden=false;const tw=tip.offsetWidth,th=tip.offsetHeight;let x=X+14,y=Y+14;if(x+tw>W-6)x=X-tw-14;if(y+th>H-6)y=Math.max(6,H-th-6);tip.style.left=Math.max(6,x)+'px';tip.style.top=Math.max(6,y)+'px'}
