@@ -241,17 +241,7 @@ button{font:inherit;cursor:pointer}
         <option>Alvorada</option>
         <option>José Humberto Nunes</option>
         <option>Outra (zona rural ou outra cidade)</option>
-      </select><p class="errmsg" id="e-comum" hidden>Escolha a comum congregação.</p></div>
-    <div class="field"><span class="lbl" id="l-outra">Algum desses moradores congrega em outra comum?</span>
-      <div class="choices" role="radiogroup" aria-labelledby="l-outra">
-        <label class="choice"><input type="radio" name="temoutra" value="nao" checked><span>Não</span></label>
-        <label class="choice"><input type="radio" name="temoutra" value="sim"><span>Sim</span></label>
-      </div>
-    </div>
-    <div class="row" id="outrabox" hidden>
-      <div class="field"><label for="outra">Qual comum?</label><select id="outra"></select><p class="errmsg" id="e-outra" hidden>Escolha a comum.</p></div>
-      <div class="field"><label for="outraq">Quantos?</label><select id="outraq"></select></div>
-    </div>
+      </select><p class="help">Se os moradores congregam em comuns diferentes, escolha a da maioria.</p><p class="errmsg" id="e-comum" hidden>Escolha a comum congregação.</p></div>
   </section>
 
   <div class="field" id="sendwrap">
@@ -498,15 +488,13 @@ f.addEventListener('submit',async e=>{e.preventDefault();const g=id=>document.ge
   const ages=[0,1,2,3,4].map(i=>+g('i'+i).value||0),totM=ages.reduce((a,b)=>a+b,0);
   if(err('idade',totM<1))bad.push(g('i0'));
   if(err('qsc',g('qsc').value==='',g('qsc')))bad.push(g('qsc'));
-  const temOutra=document.querySelector('input[name=temoutra]:checked').value==='sim';
-  if(err('outra',temOutra&&!g('outra').value,g('outra')))bad.push(g('outra'));
   if(bad.length){bad[0].scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});if(bad[0].focus&&bad[0]!==box)bad[0].focus({preventScroll:true});return}
   const rural=document.querySelector('input[name=zona]:checked').value==='rural';const qsc=+g('qsc').value||0;
   const rec={data_hora:new Date().toISOString(),responsavel:g('nome').value.trim(),telefone:td,zona:rural?'Rural':'Urbana',
     rua:rural?'':g('rua').value.trim(),numero:rural?'':g('num').value.trim(),complemento:rural?'':g('comp').value.trim(),bairro:rural?'':g('bairro').value.trim(),
     localidade_rural:rural?g('local').value.trim():'',referencia:g('ref').value.trim(),comum:g('comum').value,
     freq_0_11:ages[0],freq_12_17:ages[1],freq_18_29:ages[2],freq_30_59:ages[3],freq_60_mais:ages[4],total_frequentam:totM,
-    qtd_santa_ceia:qsc,qtd_sem_santa_ceia:totM-qsc,outra_comum:temOutra?g('outra').value:'',outra_comum_qtd:temOutra?+g('outraq').value:0,
+    qtd_santa_ceia:qsc,qtd_sem_santa_ceia:totM-qsc,outra_comum:'',outra_comum_qtd:0,
     latitude:+pin.lat.toFixed(7),longitude:+pin.lon.toFixed(7),utm_e:+(pin.x+OX-SAT_OFF[0]).toFixed(1),utm_n:+(pin.y+OY-SAT_OFF[1]).toFixed(1),
     origem_posicao:{exato:'Número achado na planta',aprox:'Aproximada pelo número',manual:'Marcada no mapa',gps:'GPS do aparelho'}[pinMode]||pinMode};
   const btn=g('send');btn.disabled=true;btn.textContent='Enviando…';g('e-send').hidden=true;
@@ -517,21 +505,18 @@ f.addEventListener('submit',async e=>{e.preventDefault();const g=id=>document.ge
     [...f.children].forEach(c=>{if(c.id!=='done'&&!c.classList.contains('top'))c.hidden=true});g('done').hidden=false;g('done').scrollIntoView({block:'start'});
   }catch(x){g('e-send').textContent='Não foi possível enviar. Verifique a internet e tente de novo.';g('e-send').hidden=false}
   btn.disabled=false;btn.textContent='Enviar cadastro'});
-document.getElementById('again').onclick=()=>{f.reset();document.getElementById('outrabox').hidden=true;fillOutra();updTot();pin=null;pinMode=null;selStreet=null;adjustMode=false;lc.textContent='';setState('none','Ainda sem posição no mapa. Digite a rua e o número para localizar a casa automaticamente.');updateAdjust();mapHint.hidden=false;mapHint.innerHTML='<b>Mapa para visualização.</b> Digite a rua e o número; depois use “Ajustar ponto” somente se necessário.';
+document.getElementById('again').onclick=()=>{f.reset();updTot();pin=null;pinMode=null;selStreet=null;adjustMode=false;lc.textContent='';setState('none','Ainda sem posição no mapa. Digite a rua e o número para localizar a casa automaticamente.');updateAdjust();mapHint.hidden=false;mapHint.innerHTML='<b>Mapa para visualização.</b> Digite a rua e o número; depois use “Ajustar ponto” somente se necessário.';
   urb.hidden=false;rur.hidden=true;[...f.children].forEach(c=>c.hidden=c.id==='done'||c.id==='rur');document.getElementById('done').hidden=true;resize();fitBox(...CITY);window.scrollTo(0,0)};
 /* total de moradores */
 const ageEls=[0,1,2,3,4].map(i=>document.getElementById('i'+i));const totEl=document.getElementById('tot');
-const qscEl=document.getElementById('qsc'),semEl=document.getElementById('semsc'),outraEl=document.getElementById('outra'),outraQ=document.getElementById('outraq'),comumEl=document.getElementById('comum');
+const qscEl=document.getElementById('qsc'),semEl=document.getElementById('semsc');
 function fillSel(el,from,to,keep,first){const v=el.value;el.innerHTML=first||'';for(let i=from;i<=to;i++){const o=document.createElement('option');o.value=i;o.textContent=i;el.appendChild(o)}if(keep&&v!==''&&+v>=from&&+v<=to)el.value=v}
 function updSem(){const n=ageEls.reduce((a,e)=>a+(+e.value||0),0);if(qscEl.value===''){semEl.textContent='Os demais contam como frequentam sem tomar santa ceia (crianças, não batizados).';return}
   const r=n-(+qscEl.value);semEl.innerHTML='<b>'+r+'</b> '+(r===1?'frequenta':'frequentam')+' sem tomar santa ceia.'}
 function updTot(){const n=ageEls.reduce((a,e)=>a+(+e.value||0),0);totEl.innerHTML='Total: <b>'+n+'</b> '+(n===1?'frequenta':'frequentam');if(n>0)document.getElementById('e-idade').hidden=true;
-  fillSel(qscEl,0,n,true,'<option value="">Selecione</option>');fillSel(outraQ,1,Math.max(1,n),true);updSem()}
+  fillSel(qscEl,0,n,true,'<option value="">Selecione</option>');updSem()}
 ageEls.forEach(e=>e.addEventListener('change',updTot));qscEl.addEventListener('change',updSem);
-function fillOutra(){const cur=outraEl.value;outraEl.innerHTML='<option value="">Selecione</option>';[...comumEl.options].slice(1).forEach(o=>{if(o.value===comumEl.value)return;const n=document.createElement('option');n.textContent=o.value;outraEl.appendChild(n)});outraEl.value=[...outraEl.options].some(o=>o.value===cur)?cur:''}
-comumEl.addEventListener('change',fillOutra);fillOutra();updTot();
-document.querySelectorAll('input[name=temoutra]').forEach(r=>r.addEventListener('change',()=>{document.getElementById('outrabox').hidden=document.querySelector('input[name=temoutra]:checked').value!=='sim'}));
-outraEl.addEventListener('change',()=>{document.getElementById('e-outra').hidden=true;outraEl.classList.remove('invalid')});
+updTot();
 /* limpar erros ao corrigir */
 [['consent','consent'],['nome','nome'],['tel','tel'],['comum','comum'],['qsc','qsc']].forEach(([id,e])=>{const el=document.getElementById(id);['input','change'].forEach(ev=>el.addEventListener(ev,()=>{document.getElementById('e-'+e).hidden=true;el.classList.remove('invalid')}))});
 /* início */
